@@ -1,16 +1,32 @@
-# Operating System
+# Operating System files
 .DS_Store
 Thumbs.db
+*.swp
 
-# IDEs
+# IDEs and Editors
 .vscode/
 .idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
-# Python (if added later)
-__pycache__/
-*.pyc
-.ipynb_checkpoints/
+# Power BI & Analytics tools
+*.pbix.backup
+*.rdl.data
+*.pbit
 
-# Note: The 'data/' folder is currently tracked in this repository as it's a sample dataset.
-# For real-world projects, large datasets should be ignored:
-# data/*.csv
+# Environment variables
+.env
+.env.local
+
+# Database/Docker local files
+mysql-data/
+*.mdf
+*.ldf
+*.db
+*.sqlite
+
+# Outputs (optional: uncomment if you don't want to track results)
+# outputs/
