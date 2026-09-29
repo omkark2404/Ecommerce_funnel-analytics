@@ -1,16 +1,10 @@
 # Operating System files
 .DS_Store
 Thumbs.db
-*.swp
 
 # IDEs and Editors
 .vscode/
 .idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
 
 # Power BI & Analytics tools
 *.pbix.backup
@@ -23,10 +17,8 @@ Thumbs.db
 
 # Database/Docker local files
 mysql-data/
-*.mdf
-*.ldf
-*.db
-*.sqlite
 
-# Outputs (optional: uncomment if you don't want to track results)
-# outputs/
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
