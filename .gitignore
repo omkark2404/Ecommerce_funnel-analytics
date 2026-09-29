@@ -1,16 +1,24 @@
-# Operating System
+# Operating System files
 .DS_Store
 Thumbs.db
 
-# IDEs
+# IDEs and Editors
 .vscode/
 .idea/
 
-# Python (if added later)
+# Power BI & Analytics tools
+*.pbix.backup
+*.rdl.data
+*.pbit
+
+# Environment variables
+.env
+.env.local
+
+# Database/Docker local files
+mysql-data/
+
+# Python
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
-
-# Note: The 'data/' folder is currently tracked in this repository as it's a sample dataset.
-# For real-world projects, large datasets should be ignored:
-# data/*.csv
