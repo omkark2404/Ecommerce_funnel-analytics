@@ -3,29 +3,45 @@ name: CI
 on:
   push:
     paths:
-      - 'sql/**.sql'
       - '.github/workflows/ci.yml'
+      - '.gitattributes'
+      - '.env.example'
+      - '.gitignore'
+      - '.sqlfluff'
+      - 'LICENSE'
+      - 'Makefile'
+      - 'PROJECT_HISTORY.md'
+      - 'README.md'
+      - 'data/**'
+      - 'dashboard/**'
+      - 'docker-compose.yml'
+      - 'outputs/**'
+      - 'requirements*.txt'
+      - 'scripts/**'
+      - 'sql/**'
   pull_request:
     paths:
-      - 'sql/**.sql'
+      - '.github/workflows/ci.yml'
+      - '.gitattributes'
+      - '.env.example'
+      - '.gitignore'
+      - '.sqlfluff'
+      - 'LICENSE'
+      - 'Makefile'
+      - 'PROJECT_HISTORY.md'
+      - 'README.md'
+      - 'data/**'
+      - 'dashboard/**'
+      - 'docker-compose.yml'
+      - 'outputs/**'
+      - 'requirements*.txt'
+      - 'scripts/**'
+      - 'sql/**'
+  workflow_dispatch:
 
 jobs:
-  sqlfluff-lint:
-    name: Lint SQL files
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-      - name: Install sqlfluff
-        run: pip install sqlfluff
-      - name: Run sqlfluff
-        run: sqlfluff lint sql/
-
-  mysql-test:
-    name: Test SQL Execution
+  validate:
+    name: Validate SQL and published analysis
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -39,19 +55,32 @@ jobs:
           --health-cmd="mysqladmin ping"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=5
+          --health-retries=10
+          --health-start-period=20s
+    env:
+      MYSQL_HOST: 127.0.0.1
+      MYSQL_PORT: 3306
+      MYSQL_USER: root
+      MYSQL_PWD: root
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Copy data to MySQL container
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned dependencies
+        run: python -m pip install -r requirements-dev.txt
+      - name: Lint SQL
+        run: python -m sqlfluff lint sql/
+      - name: Check generated artifacts
+        run: python scripts/build_artifacts.py --check
+      - name: Copy CSV inputs into MySQL service
         run: |
           docker cp data/product_users_clean.csv ${{ job.services.mysql.id }}:/var/lib/mysql-files/
           docker cp data/product_events_clean.csv ${{ job.services.mysql.id }}:/var/lib/mysql-files/
-
-      - name: Run SQL Scripts
+      - name: Create schema and load sample data
         run: |
-          mysql -h 127.0.0.1 -u root -proot ecommerce_analytics < sql/00_schema.sql
-          mysql -h 127.0.0.1 -u root -proot ecommerce_analytics < sql/01_load_data.sql
-          mysql -h 127.0.0.1 -u root -proot ecommerce_analytics < sql/02_funnel_metrics.sql
-          mysql -h 127.0.0.1 -u root -proot ecommerce_analytics < sql/03_time_to_convert.sql
-          mysql -h 127.0.0.1 -u root -proot ecommerce_analytics < sql/04_country_segmentation.sql
+          mysql --host 127.0.0.1 --user root ecommerce_analytics < sql/00_schema.sql
+          mysql --host 127.0.0.1 --user root ecommerce_analytics < sql/01_load_data.sql
+      - name: Assert MySQL results against the sample
+        run: python scripts/validate_results.py --mode host

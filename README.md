@@ -1,158 +1,108 @@
 # E-Commerce Product Funnel Analytics
 
-> End-to-end SQL analysis of an e-commerce product funnel identifying conversion bottlenecks (Signup to Purchase). Includes reproducible SQL scripts, stage-to-stage drop-off rates, time-to-conversion metrics, and geographic segmentation.
+An account-level funnel analysis using MySQL, a bundled cleaned event sample, and reproducible Python-built CSV and PNG artifacts.
 
----
+The dataset appears synthetic and is intended for portfolio demonstration. Its original publisher and generator were not recorded, so the results are illustrative and should not be treated as findings about a real store.
 
-## 🎯 Business Problem & Objective
+## Tech stack
 
-A fictional e-commerce platform is experiencing a high volume of new user sign-ups, but it is unclear where users are dropping off before completing a purchase. 
+- MySQL 8 for the schema, data loading, and analysis queries.
+- Python 3.12 and the standard library for input checks and CSV artifacts.
+- Pillow 12.3.0 for reproducible PNG charts and the static dashboard preview.
+- GitHub Actions and SQLFluff 4.4.0 for SQL linting and result validation.
 
-**Objective:** Map the exact user journey to pinpoint the largest drop-off stages in the product funnel, analyze how quickly users convert, and identify geographical differences in conversion rates to guide product optimization.
+## What is included
 
----
+- MySQL schema, data load, funnel, timing, country, and mature-cohort SQL.
+- User and event CSV inputs. The original raw data and cleaning process are not included.
+- A Python reference build that validates the inputs and regenerates all result CSVs, charts, and the dashboard preview.
+- A MySQL result validator used by the local workflow and CI.
+- A static dashboard preview at dashboard/dashboard.png. There is no Power BI project file or published dashboard link in this repository.
 
-## 📊 Dataset Description
+## Questions and metric definitions
 
-The analysis is based on two core tables representing a completely clean, uniform dataset. Given the perfect data distributions, **this dataset is assumed to be synthetically generated** for educational/portfolio purposes.
-*   **Source:** `[TODO: Insert dataset source, e.g. Kaggle, Maven Analytics, etc.]`
-*   **`product_users_clean.csv`:** 6,000 unique users. Contains `signup_date` (2023-01-01 to 2023-06-29) and `country`.
-*   **`product_events_clean.csv`:** 19,591 event logs for the 6,000 users spanning 2023-01-01 to 2023-07-03. Tracks strictly 5 actions: `signup`, `login`, `view_product`, `add_to_cart`, `purchase`.
+The analysis measures unique users at each account-level stage: signup, login, product view, add to cart, and purchase. It reports both step conversion and cumulative conversion from signup.
 
-*(See `data/README.md` for the complete data dictionary).*
+| Stage | Users | Step conversion | Cumulative from signup |
+| --- | ---: | ---: | ---: |
+| Signup | 6,000 | 100.00% | 100.00% |
+| Login | 5,396 | 89.93% | 89.93% |
+| Product view | 4,320 | 80.06% | 72.00% |
+| Add to cart | 2,577 | 59.65% | 42.95% |
+| Purchase | 1,298 | 50.37% | 21.63% |
 
----
+The largest step drop in this sample is from add to cart to purchase: 49.63% of users who added to cart did not have a recorded purchase. The source records dates rather than timestamps, so same-day stages are treated as eligible in the listed order. The data cannot confirm the within-day order.
 
-## 🛠 Tools & Technologies
+![Funnel users by stage](outputs/figures/funnel_chart.png)
 
-*   **Database:** MySQL (Local / Dockerized)
-*   **Data Analysis:** SQL (CTEs, Window Functions, Conditional Aggregation, Joins)
-*   **Data Visualization:** Python (Matplotlib/Seaborn) & Power BI
-*   **CI/CD:** GitHub Actions (MySQL Service Container), `sqlfluff` for Linting
+![Step conversion by transition](outputs/figures/dropoff_chart.png)
 
----
+## Purchase timing and observation window
 
-## 📁 Project Structure
+Among the 1,298 users with an observed purchase after signup, 37 purchased on the same date, 145 the next day, and 1,116 between two and seven days after signup. These percentages describe observed purchasers only; they are not conversion probabilities for all signup cohorts.
 
-```text
-E-Commerce-Product-Funnel-Analytics/
-│
-├── data/
-│   ├── README.md
-│   ├── product_users_clean.csv
-│   └── product_events_clean.csv
-│
-├── sql/
-│   ├── 00_schema.sql
-│   ├── 01_load_data.sql
-│   ├── 02_funnel_metrics.sql
-│   ├── 03_time_to_convert.sql
-│   └── 04_country_segmentation.sql
-│
-├── outputs/
-│   ├── 02_funnel_metrics.csv
-│   ├── 03_time_to_convert.csv
-│   ├── 04_country_segmentation.csv
-│   └── figures/                  # Generated funnel charts
-│
-├── dashboard/                    
-│   ├── README.md                 # Instructions to rebuild the dashboard
-│   └── dashboard.png             # Power BI Dashboard visual preview
-│
-├── docker-compose.yml            # Local MySQL environment
-├── Makefile                      # Automation for reproducibility
-└── README.md
-```
+The latest event date is July 3, 2023. Users who signed up after June 26 do not have a complete seven-day observation window. The comparable seven-day measure therefore includes only users signed up on or before June 26: 1,270 of 5,896 converted within seven days (21.54%).
 
----
+![Observed purchaser timing](outputs/figures/time_to_convert.png)
 
-## 🔬 Methodology & Metric Definitions
+## Country results
 
-To ensure analytical accuracy, this funnel enforces chronological progression. A user is only counted in Stage N if they completed Stage N-1 on or before the current stage date.
+These are descriptive account-level signup-to-purchase rates. The dataset contains no experiment or statistical test that establishes whether country differences are meaningful or explains their causes.
 
-*   **Metric Granularity:** Unique users (`COUNT(DISTINCT user_id)` or `COUNT(user_id)` grouped by user), *not* total session events.
-*   **Stage-to-Stage Conversion Rate Formula:** `(Users in Stage N) / (Users in Stage N-1)`
-*   **Overall Conversion Rate Formula:** `(Users in Purchase Stage) / (Users in Signup Stage)`
-*   *(Note: The dataset does not contain a discrete "checkout" event, so drop-off is measured directly from "add_to_cart" to "purchase").*
+| Country | Users | Purchases after signup | Conversion |
+| --- | ---: | ---: | ---: |
+| Germany | 1,003 | 227 | 22.63% |
+| India | 1,048 | 232 | 22.14% |
+| Australia | 956 | 208 | 21.76% |
+| Canada | 949 | 205 | 21.60% |
+| USA | 1,079 | 228 | 21.13% |
+| UK | 965 | 198 | 20.52% |
 
----
+The results suggest hypotheses to investigate, such as checking the cart-to-purchase experience or testing onboarding changes. They do not show that a discount, email campaign, or localization change will cause a lift. Those ideas should be evaluated with controlled experiments.
 
-## 💡 Key Findings
+![Dashboard preview](dashboard/dashboard.png)
 
-### 1. Overall Conversion & Drop-off
-Out of 6,000 initial signups, **1,298** users successfully completed a purchase, resulting in a **21.6% overall conversion rate**.
+## Reproduce the project
 
-![Funnel Chart](outputs/figures/funnel_chart.png)
+Requirements: Python 3.12, Docker Compose v2, and GNU Make for the Makefile shortcuts.
 
-*   **Signup:** 6,000 users (100%)
-*   **Login:** 5,396 users (89.9%)
-*   **View Product:** 4,320 users (72.0%)
-*   **Add to Cart:** 2,577 users (42.9%)
-*   **Purchase:** 1,298 users (21.6%)
+1. Copy .env.example to .env and set MYSQL_ROOT_PASSWORD to a strong local password. The database port is bound to localhost only.
+2. Install the pinned Python dependencies:
 
-**Critical Bottleneck:** The largest percentage drop-off relative to the previous stage occurs between **Add to Cart and Purchase**. Out of 2,577 users who added an item to their cart, only 1,298 purchased, representing a massive **49.6% drop-off** at the final hurdle.
+        python -m pip install -r requirements-dev.txt
 
-![Drop-off Chart](outputs/figures/dropoff_chart.png)
+3. Start MySQL and wait for its health check:
 
-### 2. Time to Convert
-The majority of converting users purchase relatively quickly:
-*   **Within 1 Week:** 86.0% (1,116 users) of purchasers convert between 2 and 7 days after signup.
-*   **Next Day:** 11.2% (145 users) convert the day after signing up.
-*   **Same Day:** Only 2.9% (37 users) convert on the exact same day they sign up.
+        make up
 
-![Time to Convert](outputs/figures/time_to_convert.png)
+4. Execute and validate the SQL results, then regenerate the CSV and PNG artifacts:
 
-### 3. Geographic Performance
-*   **Top Market:** Germany leads with the highest conversion rate at **22.63%** (227 purchasers / 1003 signups).
-*   **Lagging Market:** The UK lags slightly behind with a **20.52%** conversion rate (198 purchasers / 965 signups).
-*   *(Note: Due to the nearly identical segment sizes (950-1050 users per country) and tight conversion spread (20.5% - 22.6%), these differences are largely descriptive and may not represent highly significant shifts in user behavior without further statistical testing).*
+        make run-queries
 
----
+5. Stop the local database:
 
-## 📈 Recommendations
+        make down
 
-1.  **Target Cart Abandonment:** Because nearly 50% of users drop off after adding an item to their cart, implementing an automated "abandoned cart" email drip campaign or surfacing a limited-time 10% discount during the cart review stage could yield an immediate lift in overall conversions.
-2.  **Optimize the First Week Onboarding:** Because 86% of purchases happen between Day 2 and Day 7 post-signup, marketing (like retargeting ads) and product onboarding should be heavily front-loaded during this critical 7-day window.
-3.  **Investigate UK Friction:** Product teams should audit the UK user journey (e.g., localization, shipping costs, payment methods) to understand why it converts 200 basis points lower than Germany.
+To regenerate artifacts from the checked-in data without MySQL, run python scripts/build_artifacts.py. To check that the committed artifacts are current, run python scripts/build_artifacts.py --check. To validate against a running host MySQL instance, set MYSQL_HOST, MYSQL_PORT, MYSQL_USER, and MYSQL_PWD, then run python scripts/validate_results.py --mode host.
 
-*(Assumption: These recommendations assume the drop-off is driven by user friction rather than platform bugs or inventory stock-outs).*
+The CSV inputs use LF line endings, enforced by .gitattributes. The schema and load scripts run during first-time MySQL container initialization. Removing the container with make down also removes its local database; the source CSV files remain unchanged.
 
----
+## Limitations
 
-## ⚙️ How to Reproduce
+- The dataset appears synthetic; its original source and generation process are undocumented.
+- Only dates are available, not event timestamps. The funnel assumes same-day events follow the listed stage order.
+- Events have no session, order, product, quantity, or price identifiers. This project cannot measure session-level funnels, revenue, or product performance.
+- Recent signup cohorts have shorter follow-up. The seven-day conversion result uses only cohorts with a complete seven-day observation period.
+- The country comparisons and recommendations are descriptive. No causal or statistical-significance claim is made.
 
-You can reproduce this exact analysis locally with a single command using Docker and `make`.
+## Project files
 
-1. Clone this repository.
-2. Spin up the MySQL container and load the raw data:
-   ```bash
-   make up
-   ```
-3. Execute the SQL queries (which will automatically write the results to `outputs/*.csv`):
-   ```bash
-   make run-queries
-   ```
-4. Tear down the database:
-   ```bash
-   make down
-   ```
+    data/                 Cleaned user and event CSV inputs
+    sql/                  MySQL schema, load, and analysis queries
+    scripts/              Data checks, artifact generation, and SQL-result validation
+    outputs/              CSV results and reproducible charts
+    dashboard/            Static dashboard preview and notes
 
----
+## Author
 
-## ⚠️ Limitations & Assumptions
-
-1. **Date Granularity:** The `event_date` field is recorded at the `DATE` level, not `TIMESTAMP`. Because users frequently trigger multiple events on the exact same day, strict chronological ordering *within* a single day cannot be perfectly enforced. The SQL logic assumes events occurring on the same day follow the logical funnel progression.
-2. **Missing Raw Data:** The provided dataset was already in a `_clean` state. The raw data and the data cleaning steps (e.g., Python/Pandas transformation) are not documented or included.
-
----
-
-## 🌱 What I Learned / Next Steps
-
-*   **Chronological Funnels in SQL:** I learned how to use Conditional Aggregation (`MIN(CASE WHEN...)`) to enforce chronological sequence in funnel analytics rather than relying on aggregate cross-sectional counts, which can skew the reality of the user journey.
-*   **Data Portability for BI:** Splitting SQL into discrete execution steps and exporting directly to CSVs taught me how to cleanly hand off analytical data to a BI tool like Power BI without requiring heavy DAX transformations.
-*   **Next Steps:** If timestamp data were available, my next step would be analyzing session-level cart abandonment (e.g., minutes elapsed from cart to purchase) to better target retargeting campaigns.
-
----
-
-**Author:** `[TODO: YOUR NAME]` 
-**Contact:** `[TODO: LinkedIn Link]` | `[TODO: Portfolio Link]`
+GitHub: [omkark2404](https://github.com/omkark2404)

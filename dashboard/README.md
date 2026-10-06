@@ -1,23 +1,13 @@
-# Dashboard Rebuild Instructions
+# Dashboard preview
 
-The dashboard visual (`dashboard/dashboard.png`) was built using Power BI, but the `.pbix` file is not currently tracked in this repository. `[TODO: Place your actual dashboard.pbix file in the /dashboard folder]`
+dashboard.png is a static PNG generated from the checked-in analysis results by scripts/build_artifacts.py. It summarizes the funnel, observed purchase timing, country-level descriptive rates, and the mature seven-day conversion measure.
 
-`[TODO: Add the published Power BI web link here]`
+There is no Power BI project file or published dashboard link in this repository. The PNG is a preview, not an interactive dashboard.
 
-## Rebuilding from Outputs
+Regenerate all result CSVs and visuals from the bundled source data with:
 
-If you want to recreate the dashboard visuals, you do NOT need to write complex DAX or connect directly to a database. You can simply import the clean, aggregated tables from the `outputs/` folder:
+    python scripts/build_artifacts.py
 
-1.  **Funnel Visual:**
-    *   **Source:** `outputs/02_funnel_metrics.csv`
-    *   **Fields:** Category = `stage`, Values = `users`.
-2.  **Time-to-Convert Bar Chart:**
-    *   **Source:** `outputs/03_time_to_convert.csv`
-    *   **Fields:** X-Axis = `time_bucket`, Y-Axis = `percentage`.
-3.  **KPI Cards:**
-    *   **Total Users:** `SUM(users)` from `02_funnel_metrics.csv` where `stage = '1_signup'`.
-    *   **Total Conversions:** `SUM(users)` where `stage = '5_purchase'`.
-    *   **Conversion Rate:** `Total Conversions / Total Users`.
-4.  **Country Segmentation Table:**
-    *   **Source:** `outputs/04_country_segmentation.csv`
-    *   **Fields:** `country`, `total_users`, `total_purchases`, `conversion_rate_pct`.
+Check that the committed artifacts match the reproducible build with:
+
+    python scripts/build_artifacts.py --check

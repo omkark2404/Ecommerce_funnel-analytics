@@ -7,6 +7,7 @@ Thumbs.db
 .idea/
 
 # Power BI & Analytics tools
+*.pbix
 *.pbix.backup
 *.rdl.data
 *.pbit
@@ -22,3 +23,8 @@ mysql-data/
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.artifact-check-*/

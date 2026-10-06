@@ -1,4 +1,5 @@
-time_bucket,total_users,percentage
+time_bucket,observed_purchasers,percentage_of_observed_purchasers
 0_Same_Day,37,2.85
 1_Next_Day,145,11.17
 2_Within_Week,1116,85.98
+3_More_Than_Week,0,0.00

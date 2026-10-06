@@ -1,7 +1,6 @@
 -- ======================================================================
 -- 01_load_data.sql
--- Business Purpose: Load the raw CSV data into the MySQL tables.
--- Note: Update the file path to match your local environment's secure-file-priv directory.
+-- .gitattributes keeps the checked-in CSV inputs on LF line endings.
 -- ======================================================================
 
 USE ecommerce_analytics;
@@ -9,7 +8,7 @@ USE ecommerce_analytics;
 -- Load Users Data
 LOAD DATA INFILE '/var/lib/mysql-files/product_users_clean.csv'
 INTO TABLE users
-FIELDS TERMINATED BY ',' 
+FIELDS TERMINATED BY ','
 ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
 IGNORE 1 ROWS
@@ -18,7 +17,7 @@ IGNORE 1 ROWS
 -- Load Events Data
 LOAD DATA INFILE '/var/lib/mysql-files/product_events_clean.csv'
 INTO TABLE events
-FIELDS TERMINATED BY ',' 
+FIELDS TERMINATED BY ','
 ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
 IGNORE 1 ROWS

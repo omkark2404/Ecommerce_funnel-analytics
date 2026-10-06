@@ -1,33 +1,22 @@
-# Data Documentation
+# Data documentation
 
-This folder contains the cleaned datasets used for the E-Commerce Product Funnel Analytics project.
+This directory contains the cleaned CSV inputs used by the analysis. The original raw files and cleaning script are not included.
 
-## Datasets
+## product_users_clean.csv
 
-### 1. `product_users_clean.csv`
-Contains demographic and acquisition information for platform users.
+- 6,000 unique accounts.
+- Signup dates range from 2023-01-01 through 2023-06-29.
+- Fields: user_id, signup_date, country.
 
-*   **Row Count:** 6,000
-*   **Date Range (`signup_date`):** 2023-01-01 to 2023-06-29
-*   **Null Values:** 0
-*   **Dictionary:**
-    *   `user_id` (Integer): Unique identifier for the user.
-    *   `signup_date` (Date): The date the user created their account (YYYY-MM-DD format).
-    *   `country` (String): The user's registered country.
+## product_events_clean.csv
 
-### 2. `product_events_clean.csv`
-Contains event logs tracking the user journey through the product funnel.
+- 19,591 user-level event rows.
+- Event dates range from 2023-01-01 through 2023-07-03.
+- Fields: user_id, event_type, event_date.
+- Event types: signup, login, view_product, add_to_cart, purchase.
 
-*   **Row Count:** 19,591
-*   **Date Range (`event_date`):** 2023-01-01 to 2023-07-03
-*   **Null Values:** 0
-*   **Unique Users Logged:** 6,000
-*   **Dictionary:**
-    *   `user_id` (Integer): Identifier linking to the `users` table.
-    *   `event_type` (String): The action performed. Values: `signup`, `login`, `view_product`, `add_to_cart`, `purchase`. *(Note: There is no distinct 'checkout' event in this dataset).*
-    *   `event_date` (Date): The date the action occurred.
+The files contain no session, order, product, quantity, price, or timestamp fields. The event date is recorded at day granularity. Where multiple funnel stages share a date, the analysis treats them as occurring in the intended stage order; the data cannot verify that order.
 
-## Limitations & Assumptions
-1. **Source:** `[TODO: Insert dataset source, e.g., Kaggle, company sample, etc.]`. Due to the perfectly clean distributions and lack of nulls, this dataset is assumed to be synthetic/generated for educational purposes.
-2. **Date Granularity:** The `event_date` field is recorded at the `DATE` level, not `TIMESTAMP`. Because users frequently trigger multiple events on the exact same day, strict chronological ordering *within* a single day cannot be perfectly enforced. The analysis assumes events occurring on the same day follow the logical funnel progression.
-3. **Data Cleaning:** The raw, uncleaned data and the exact cleaning script (e.g., Python/Pandas steps) are not included in this repository. These files represent the final, clean state ready for SQL consumption.
+The original data publisher and generator were not recorded. The clean distributions suggest a synthetic demonstration dataset, but this repository does not claim a specific source or authoring process. Treat all results as illustrative.
+
+The checked-in CSV files are maintained with LF line endings. Dataset checks and artifact generation are available in scripts/build_artifacts.py.
